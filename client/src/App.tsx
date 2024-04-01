@@ -1,8 +1,8 @@
+import { Button } from "@mui/material"
 function App() {
 
   return (
     <>
-      <p className='text-orange-700'>I am meet app</p>
     </>
   )
 }
