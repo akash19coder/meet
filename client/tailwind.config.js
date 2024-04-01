@@ -6,7 +6,11 @@ export default {
   ],
   important: '#root',
   theme: {
-    extend: {},
+    extend: {
+      screens: {
+        'xs': '370px',
+      },
+    },
   },
   plugins: [],
 }
