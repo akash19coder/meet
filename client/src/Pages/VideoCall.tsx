@@ -5,10 +5,22 @@ import StopCircleIcon from "@mui/icons-material/StopCircle";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import MeetLogo from "../Components/MeetLogo";
 import ChatPage from "../Components/ChatPage";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { requestAudioVideoPermission } from "../utils/AskAudioVideoPermission";
 const VideoCall = () => {
   const [showChatBox, setShowChatBox] = useState<boolean>(false);
-
+  
+  useEffect(() => {
+    const requestPermission = async () => {
+        try {
+            await requestAudioVideoPermission();
+        } catch (error) {
+            console.log('Error requesting permission:', error);
+        }
+    };
+    requestPermission();
+}, []);
+  
   const handleMessageClickButton = () => {
     setShowChatBox(!showChatBox);
   };
@@ -73,3 +85,4 @@ const VideoCall = () => {
 };
 
 export default VideoCall;
+
