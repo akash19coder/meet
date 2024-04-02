@@ -1,10 +1,9 @@
-import { Button } from "@mui/material"
-import ChatPage from "./Pages/ChatPage"
+import VideoCall from "./Pages/VideoCall"
 function App() {
 
   return (
     <>
-      <ChatPage></ChatPage>
+      <VideoCall></VideoCall>
     </>
   )
 }
