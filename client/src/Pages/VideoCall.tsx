@@ -5,15 +5,17 @@ import StopCircleIcon from "@mui/icons-material/StopCircle";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import MeetLogo from "../Components/MeetLogo";
 import ChatPage from "../Components/ChatPage";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { requestAudioVideoPermission } from "../utils/AskAudioVideoPermission";
 const VideoCall = () => {
   const [showChatBox, setShowChatBox] = useState<boolean>(false);
+  const localPeer = useRef<HTMLVideoElement>();
   
   useEffect(() => {
     const requestPermission = async () => {
         try {
-            await requestAudioVideoPermission();
+            const stream = await requestAudioVideoPermission();
+            localPeer.current.srcObject = stream;
         } catch (error) {
             console.log('Error requesting permission:', error);
         }
@@ -36,16 +38,15 @@ const VideoCall = () => {
       <Box className="h-[60vh] flex justify-center gap-3 items-center xs:flex-col sm:flex-col md:flex-col lg:flex-row xl:flex-row 2xl:flex-row mt-10">
         <Box>
           <video
+            ref={localPeer}
             controls
             className="lg:w-[400px] lg:h-80 xs:w-[300px] xs:h-56"
-            src="https://youtu.be/NdUr0akpqAM?feature=shared"
           ></video>
         </Box>
         <Box>
           <video
             controls
             className="lg:w-[400px] lg:h-80 xs:w-[300px] xs:h-56"
-            src=""
           ></video>
         </Box>
         {showChatBox && <ChatPage></ChatPage>}
