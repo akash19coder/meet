@@ -5,17 +5,19 @@ import StopCircleIcon from "@mui/icons-material/StopCircle";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import MeetLogo from "../Components/MeetLogo";
 import ChatPage from "../Components/ChatPage";
-import { useEffect, useRef, useState } from "react";
+import { RefObject, useEffect, useRef, useState } from "react";
 import { requestAudioVideoPermission } from "../utils/AskAudioVideoPermission";
 const VideoCall = () => {
   const [showChatBox, setShowChatBox] = useState<boolean>(false);
-  const localPeer = useRef<HTMLVideoElement>();
+  const localPeer: RefObject<HTMLVideoElement> = useRef(null);
   
   useEffect(() => {
     const requestPermission = async () => {
         try {
             const stream = await requestAudioVideoPermission();
-            localPeer.current.srcObject = stream;
+            if (localPeer.current) {
+              localPeer.current.srcObject = stream;
+          }          
         } catch (error) {
             console.log('Error requesting permission:', error);
         }
