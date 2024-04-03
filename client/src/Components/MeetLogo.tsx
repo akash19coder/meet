@@ -3,7 +3,7 @@ import { Box } from '@mui/material'
 const MeetLogo = () => {
   return (
     <Box>
-       <img src="../../public/meet.png" alt="Logo of meet app" className=' w-48'/>  
+       <img src="./meet.png" alt="Logo of meet app" className=' w-48'/>  
     </Box>
   )
 }
