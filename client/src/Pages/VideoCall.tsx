@@ -7,24 +7,29 @@ import MeetLogo from "../Components/MeetLogo";
 import ChatPage from "../Components/ChatPage";
 import { RefObject, useEffect, useRef, useState } from "react";
 import { requestAudioVideoPermission } from "../utils/AskAudioVideoPermission";
+
 const VideoCall = () => {
   const [showChatBox, setShowChatBox] = useState<boolean>(false);
   const localPeer: RefObject<HTMLVideoElement> = useRef(null);
-  
+  const remotePeer: RefObject<HTMLVideoElement> = useRef(null);
   useEffect(() => {
     const requestPermission = async () => {
         try {
-            const stream = await requestAudioVideoPermission();
+            const localStream = await requestAudioVideoPermission();
+            const remoteStream = new MediaStream()
             if (localPeer.current) {
-              localPeer.current.srcObject = stream;
-          }          
+              localPeer.current.srcObject = localStream;
+            }
+            if(remotePeer.current) {
+              remotePeer.current.srcObject = remoteStream;
+            }
         } catch (error) {
             console.log('Error requesting permission:', error);
         }
     };
     requestPermission();
 }, []);
-  
+
   const handleMessageClickButton = () => {
     setShowChatBox(!showChatBox);
   };
@@ -41,13 +46,14 @@ const VideoCall = () => {
         <Box>
           <video
             ref={localPeer}
-            controls
+            autoPlay
             className="lg:w-[400px] lg:h-80 xs:w-[300px] xs:h-56"
           ></video>
         </Box>
         <Box>
           <video
-            controls
+            ref={remotePeer}
+            autoPlay
             className="lg:w-[400px] lg:h-80 xs:w-[300px] xs:h-56"
           ></video>
         </Box>
