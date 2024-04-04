@@ -6,7 +6,9 @@ import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import MeetLogo from "../Components/MeetLogo";
 import ChatPage from "../Components/ChatPage";
 import { RefObject, useEffect, useRef, useState } from "react";
-import { requestAudioVideoPermission } from "../utils/AskAudioVideoPermission";
+import { requestAudioVideoPermission } from "../utils/AudioVideoPermission";
+import { getMediaTracks } from "../utils/Tracks";
+import { createOffer } from "../utils/SDP";
 
 const VideoCall = () => {
   const [showChatBox, setShowChatBox] = useState<boolean>(false);
@@ -17,17 +19,37 @@ const VideoCall = () => {
         try {
             const localStream = await requestAudioVideoPermission();
             const remoteStream = new MediaStream()
+
+            const peerconnection = await createOffer();
+
             if (localPeer.current) {
               localPeer.current.srcObject = localStream;
             }
             if(remotePeer.current) {
               remotePeer.current.srcObject = remoteStream;
             }
+
+            localStream.getTracks().forEach(async(track) => {
+              
+              peerconnection.addTrack(track);
+
+            })
+            peerconnection.ontrack = (event)=>{
+              event.streams[0].getTracks().forEach((track)=>{
+                remoteStream.addTrack(track);
+              })
+            }
+            peerconnection.onicecandidate =  async(event) => {
+              if(event.candidate){
+                console.log(event.candidate);
+              }
+            }
         } catch (error) {
             console.log('Error requesting permission:', error);
         }
     };
     requestPermission();
+    
 }, []);
 
   const handleMessageClickButton = () => {
