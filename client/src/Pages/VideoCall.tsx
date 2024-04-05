@@ -7,51 +7,70 @@ import MeetLogo from "../Components/MeetLogo";
 import ChatPage from "../Components/ChatPage";
 import { RefObject, useEffect, useRef, useState } from "react";
 import { requestAudioVideoPermission } from "../utils/AudioVideoPermission";
-import { getMediaTracks } from "../utils/Tracks";
-import { createOffer } from "../utils/SDP";
+import { createOffer } from "../utils/SDPCreater";
+import { createChannel, createClient, RtmMessage } from "agora-rtm-react";
+
+const APP_ID = "7a5176d7fc5844c58098e1dedbd20470";
+const token = null;
+const uid = String(Math.ceil(Math.random() * 10000));
 
 const VideoCall = () => {
   const [showChatBox, setShowChatBox] = useState<boolean>(false);
   const localPeer: RefObject<HTMLVideoElement> = useRef(null);
   const remotePeer: RefObject<HTMLVideoElement> = useRef(null);
-  useEffect(() => {
+
+  const useClient = createClient(APP_ID);
+  const useChannel = createChannel("meet");
+
+  const client = useClient();
+  const channel = useChannel(client);
+
+  
     const requestPermission = async () => {
-        try {
-            const localStream = await requestAudioVideoPermission();
-            const remoteStream = new MediaStream()
+      try {
+        const localStream = await requestAudioVideoPermission();
+        const remoteStream = new MediaStream();
 
-            const peerconnection = await createOffer();
+        await client.login({ uid });
+        await channel.join();
 
-            if (localPeer.current) {
-              localPeer.current.srcObject = localStream;
-            }
-            if(remotePeer.current) {
-              remotePeer.current.srcObject = remoteStream;
-            }
-
-            localStream.getTracks().forEach(async(track) => {
-              
-              peerconnection.addTrack(track);
-
-            })
-            peerconnection.ontrack = (event)=>{
-              event.streams[0].getTracks().forEach((track)=>{
-                remoteStream.addTrack(track);
-              })
-            }
-            peerconnection.onicecandidate =  async(event) => {
-              if(event.candidate){
-                console.log(event.candidate);
-              }
-            }
-        } catch (error) {
-            console.log('Error requesting permission:', error);
+        
+        const handleUserJoin = async (MemberID: string) => {
+          console.log('A new user joinged the channel',MemberID);
+        };
+        
+        channel.on("MemberJoined", handleUserJoin);
+        const peerconnection = await createOffer();
+        console.log('From Video Calling Page', peerconnection);
+        if (localPeer.current) {
+          localPeer.current.srcObject = localStream;
         }
+        if (remotePeer.current) {
+          remotePeer.current.srcObject = remoteStream;
+        }
+
+        localStream.getTracks().forEach(async (track) => {
+          peerconnection.addTrack(track);
+        });
+        peerconnection.ontrack = (event) => {
+          event.streams[0].getTracks().forEach((track) => {
+            remoteStream.addTrack(track);
+          });
+        };
+        peerconnection.onicecandidate = async (event) => {
+          if (event.candidate) {
+            console.log(event.candidate);
+          }
+        };
+        
+      } catch (error) {
+        console.log("Error requesting permission:", error);
+      }
     };
     requestPermission();
-    
-}, []);
-
+  
+  
+  createOffer();
   const handleMessageClickButton = () => {
     setShowChatBox(!showChatBox);
   };
@@ -116,4 +135,3 @@ const VideoCall = () => {
 };
 
 export default VideoCall;
-
