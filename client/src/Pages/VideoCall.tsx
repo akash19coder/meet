@@ -6,14 +6,12 @@ import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import MeetLogo from "../Components/MeetLogo";
 import ChatPage from "../Components/ChatPage";
 import { RefObject, useEffect, useRef, useState } from "react";
-import { requestAudioVideoPermission } from "../utils/AudioVideoPermission";
-import { createAnswer, createOffer } from "../utils/SDPCreater";
-import { createChannel, createClient, RtmMessage } from "agora-rtm-react";
+import { createChannel, createClient,  } from "agora-rtm-react";
+import { init } from "../utils/Connection";
 
 const APP_ID = "7a5176d7fc5844c58098e1dedbd20470";
 const token = undefined;
 const uid = String(Math.ceil(Math.random() * 10000));
-let memberID: string = null;
 
 const useClient = createClient(APP_ID);
 const useChannel = createChannel("meet");
@@ -27,61 +25,25 @@ const VideoCall = () => {
   const client = useClient();
   const channel = useChannel(client);
 
-  const requestPermission = async () => {
-    try {
-      console.log("I am entering the requestPermissionPage");
-      const localStream = await requestAudioVideoPermission();
-      console.log("localStream", localStream);
-      const remoteStream = new MediaStream();
-      const peerconnection = new RTCPeerConnection();
-      await createOffer(memberID, client, peerconnection);
+  useEffect(() => {
+    const requestPermission = async () => {
+      try {
+        const loginResult = await client.login({ uid, token });
+        console.log("loginResult", loginResult);
+        await channel.join();
 
-      const loginResult = await client.login({ uid, token });
-      console.log("loginResult", loginResult);
-      await channel.join();
-
-      const handleUserJoin = async (MemberID: string) => {
-        console.log("A new user joinged the channel", MemberID);
-        memberID = MemberID;
-        createOffer(MemberID, client, peerconnection);    // sends the sdp as message...
-      };
-
-      const handleUserMessage = async (
-        message: RtmMessage,
-        MemberID: string
-      ) => {
-        console.log(JSON.parse(message.text));
-        createAnswer(MemberID, JSON.parse(message.text), client);
-        peerconnection.setRemoteDescription(JSON.parse(message.text).offer);
-      };
-
-      channel.on("MemberJoined", handleUserJoin);
-      client.on("MessageFromPeer", handleUserMessage);
-
-      
-      console.log("From Video Calling Page", peerconnection);
-
-      if (localPeer.current) {
-        localPeer.current.srcObject = localStream;
+        init(localPeer, remotePeer, client, channel);
+      } catch (error) {
+        console.log("Error requesting permission:", error);
       }
-      if (remotePeer.current) {
-        remotePeer.current.srcObject = remoteStream;
-      }
+    };
+    requestPermission();
 
-      localStream.getTracks().forEach(async (track) => {
-        peerconnection.addTrack(track);
-      });
-
-      peerconnection.ontrack = (event) => {
-        event.streams[0].getTracks().forEach((track) => {
-          remoteStream.addTrack(track);
-        });
-      };
-    } catch (error) {
-      console.log("Error requesting permission:", error);
-    }
-  };
-  requestPermission();
+    // Clean-up function
+    return () => {
+      // Perform any clean-up here, if necessary
+    };
+  }, []);
 
   const handleMessageClickButton = () => {
     setShowChatBox(!showChatBox);
@@ -100,13 +62,14 @@ const VideoCall = () => {
           <video
             ref={localPeer}
             autoPlay
-            className="lg:w-[400px] lg:h-80 xs:w-[300px] xs:h-56"
+            className="lg:w-[400px] lg:h-80 xs:w-[300px] xs:h-56 "
           ></video>
         </Box>
         <Box>
           <video
             ref={remotePeer}
             autoPlay
+            controls
             className="lg:w-[400px] lg:h-80 xs:w-[300px] xs:h-56"
           ></video>
         </Box>

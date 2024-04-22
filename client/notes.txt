@@ -1,0 +1,12 @@
+Establish peer connection
+Create a SDP offer
+Send it to remote peer
+Set localDescription to created offer
+Request audio and camera permission
+get tracks and send it to the remote peer and also receive from them
+get icecandidates from STUN server
+send them to remote peer as well
+set up signalling using Agora SDK
+send SDP and ICE to the remote peer
+start sending the video and audio tracks
+video calling started

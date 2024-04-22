@@ -22,18 +22,28 @@ export const init = async (
   channel: RtmChannel
 ) => {
   localStream = await window.navigator.mediaDevices.getUserMedia(constraints);
-  console.log("I am local Stream", localStream);
   if (localPeer.current) {
     localPeer.current.srcObject = localStream;
   }
   channel.on("MemberJoined", async (MemberID) => {
-    createOffer(remotePeer, MemberID, client);
+    console.log('a member has joined with memeber id:', MemberID);
+    await createOffer(localPeer,remotePeer, MemberID, client);
   });
+
   client.on("MessageFromPeer", async (message, MemberID) => {
     message = JSON.parse(message.text);
-    console.log("I am message", message);
     if (message.type === "offer") {
-      createAnswer(MemberID, message, client, peerconnection);
+      await createAnswer(localPeer, remotePeer, MemberID, message, client, peerconnection);
+    }
+    if(message.type === "answer"){
+      if(!peerconnection.currentRemoteDescription){
+        peerconnection.setRemoteDescription(message.answer);
+      }
+    }
+    if(message.type === "candidate"){
+      if(peerconnection){
+        peerconnection.addIceCandidate(message.candidate);
+      }
     }
   });
 };
@@ -47,8 +57,8 @@ const createPeerConnection = async (
   peerconnection = new RTCPeerConnection(servers);
 
   remoteStream = new MediaStream();
-
   if (remotePeer.current) {
+    console.log('i am adding remoteStream');
     remotePeer.current.srcObject = remoteStream;
   }
 
@@ -62,12 +72,24 @@ const createPeerConnection = async (
   }
   localStream.getTracks().forEach((track) => {
     peerconnection.addTrack(track, localStream);
+    console.log('i have added tracks')
   });
 
   peerconnection.ontrack = (event) => {
+    
     event.streams[0].getTracks().forEach((track) => {
-      remoteStream.addTrack(track);
+      const videoStream = new MediaStream()
+      videoStream.addTrack(track)
+      videoStream.addTrack(track);
+      remotePeer.current.srcObject = videoStream
+      
+      console.log('i have received tracks', track);
     });
+    if (remotePeer.current) {
+      console.log('i am adding remoteStream and i am inside tracks');
+      remotePeer.current.srcObject = remoteStream;
+      console.log(remotePeer.current.srcObject);
+    }
   };
   peerconnection.onicecandidate = async (event) => {
     if (event.candidate) {
@@ -80,14 +102,14 @@ const createPeerConnection = async (
 };
 
 const createOffer = async (
+  localPeer: RefObject<HTMLVideoElement>,
   remotePeer: RefObject<HTMLVideoElement>,
   MemberID: string,
   client: RtmClient
 ) => {
-  await createPeerConnection(remotePeer, MemberID, client);
+  await createPeerConnection(localPeer,remotePeer, MemberID, client);
 
   const offer = await peerconnection.createOffer();
-  console.log("i am offer", offer);
   peerconnection.setLocalDescription(offer);
   client.sendMessageToPeer(
     { text: JSON.stringify({ type: "offer", offer: offer }) },
@@ -96,15 +118,19 @@ const createOffer = async (
 };
 
 const createAnswer = async (
+  localPeer: RefObject<HTMLVideoElement>,
+  remotePeer: RefObject<HTMLVideoElement>,
   MemberID: string,
   offer: RTCSessionDescription,
   client: RtmClient,
   peerconnection: RTCPeerConnection
 ) => {
+  await createPeerConnection(localPeer,remotePeer, MemberID, client);
+
   await peerconnection.setRemoteDescription(offer.offer);
-
+  console.log('after setting remoteRemoteDescription', peerconnection);
   const answer = await peerconnection.createAnswer();
-
+  console.log('i am answer', answer);
   await peerconnection.setLocalDescription(answer);
 
   await client.sendMessageToPeer(
