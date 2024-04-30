@@ -3,7 +3,10 @@ import { createServer } from "http";
 
 const httpServer = createServer();
 const io = new Server(httpServer, {
-  cors: true,
+  cors: {
+    origin: "https://meetxfriend.netlify.app/",
+    methods: ["GET", "POST"]
+  }
 });
 const PORT = process.env.PORT || 3000
 
