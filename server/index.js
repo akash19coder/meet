@@ -5,6 +5,7 @@ const httpServer = createServer();
 const io = new Server(httpServer, {
   cors: true,
 });
+const PORT = process.env.PORT || 3000
 
 const emailToSocketIdMap = new Map();
 const socketidToEmailMap = new Map();
@@ -39,6 +40,6 @@ io.on("connection", (socket) => {
   });
 });
 
-httpServer.listen(3000, () => {
+httpServer.listen(PORT, () => {
   console.log("Signaling Server running at localhost:3000");
 });
