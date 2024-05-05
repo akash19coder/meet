@@ -30,32 +30,41 @@ Hence, I have embarked on a journey to build an app like Omegle to navigate the 
 ### Quickstart
 
 Step 1: Fork the repository
+
 Step 2: Clone the repository into you local machine using:
+
 ```git clone https://www.github.com/akash19coder/meet```
 
 #### Client
 Step 3: Change the directory to meet/client using:
+
 ``` cd client ```
 
 Step 4: The project uses libraries like Tailwind, MaterialUI, socket.io-client, and many more. Therefore install all the dependencies using:
+
 ```npm install ```
 
 Step 5: Start the development build using:
+
 ```npm run dev ```
 
 The local development server will start at **localhost:5173**
 
 #### Server
 Step 6: Come back to the root directory using:
+
 ```cd ..```
 
 Step 7: Change the directory to meet/server using:
+
 ```cd server ```
 
 Step 8: Install all the dependencies using:
+
 ``` npm install ```
 
 Step 9: Start the server:
+
 ```npm run dev ```
 
 The server will start at **localhost:3000**
